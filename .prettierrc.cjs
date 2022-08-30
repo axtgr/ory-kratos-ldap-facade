@@ -1,0 +1,18 @@
+/* eslint-env node */
+
+module.exports = {
+  printWidth: 88,
+  tabWidth: 2,
+  useTabs: false,
+  semi: false,
+  singleQuote: true,
+  quoteProps: 'as-needed',
+  jsxSingleQuote: false,
+  bracketSpacing: true,
+  arrowParens: 'always',
+  trailingComma: 'es5',
+  proseWrap: 'preserve',
+  htmlWhitespaceSensitivity: 'css',
+  vueIndentScriptAndStyle: true,
+  endOfLine: 'lf',
+}
