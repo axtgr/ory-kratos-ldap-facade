@@ -3,7 +3,7 @@
 module.exports = {
   parserOptions: {
     sourceType: 'module',
-    ecmaVersion: 2015,
+    ecmaVersion: 2021,
   },
   extends: ['eslint:recommended', 'prettier'],
   plugins: ['prettier'],
@@ -20,7 +20,6 @@ module.exports = {
     'prefer-template': 'error',
     'object-shorthand': 'error',
     'no-prototype-builtins': 'off',
-    'no-console': 'error',
     'no-empty': ['error', { allowEmptyCatch: true }],
   },
 }
