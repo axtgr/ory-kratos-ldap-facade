@@ -4,7 +4,7 @@ let config = {
   port: Number(process.env.PORT || 1389),
   kratosPublicUrl: process.env.KRATOS_PUBLIC_URL,
   baseDn: process.env.LDAP_BASE_DN,
-  usersDn: process.env.LDAP_USERS_DN,
+  usersDn: process.env.LDAP_USERS_DN || 'users',
 }
 
 if (!config.kratosPublicUrl) {
