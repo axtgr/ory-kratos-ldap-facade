@@ -12,6 +12,11 @@ if (!config.kratosPublicUrl) {
   process.exit(1)
 }
 
+if (!config.baseDn) {
+  console.error('LDAP_BASE_DN env variable is required')
+  process.exit(1)
+}
+
 async function request(target, method = 'GET', body = undefined) {
   let url = new URL(target, config.kratosPublicUrl)
   let response = await fetch(url, {
