@@ -5,6 +5,7 @@ let config = {
   kratosPublicUrl: process.env.KRATOS_PUBLIC_URL,
   baseDn: process.env.LDAP_BASE_DN,
   usersDn: process.env.LDAP_USERS_DN || 'users',
+  idAttribute: process.env.LDAP_ID_ATTRIBUTE,
 }
 
 if (!config.kratosPublicUrl) {
@@ -60,13 +61,14 @@ server.bind(`${config.usersDn},${config.baseDn}`, async (req, res, next) => {
   }
 
   let rdn = req.dn.rdns[0]
-  let identifier =
-    rdn.attrs?.username?.value ||
-    rdn.attrs?.uid?.value ||
-    rdn.attrs?.cn?.value ||
-    rdn.attrs?.sAMAccountName?.value ||
-    rdn.attrs?.email?.value ||
-    rdn.attrs?.mail?.value
+  let identifier = config.idAttribute
+    ? rdn.attrs?.[config.idAttribute]?.value
+    : rdn.attrs?.username?.value ||
+      rdn.attrs?.uid?.value ||
+      rdn.attrs?.cn?.value ||
+      rdn.attrs?.sAMAccountName?.value ||
+      rdn.attrs?.email?.value ||
+      rdn.attrs?.mail?.value
   let password = req.credentials
 
   if (!identifier) {
