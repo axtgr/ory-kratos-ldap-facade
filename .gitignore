@@ -21,18 +21,8 @@ Thumbs.db
 ipch/
 *.sdf
 *.opensdf
-package-lock.json
 .eslintcache
 .nyc_output
 coverage
 .linaria_cache
 certs
-
-# Yarn (no PNP)
-.yarn/*
-!.yarn/patches
-!.yarn/releases
-!.yarn/plugins
-!.yarn/sdks
-!.yarn/versions
-.pnp.*
