@@ -18,7 +18,7 @@ if (!config.baseDn) {
   process.exit(1)
 }
 
-async function request(target, method = 'GET', body = undefined) {
+async function requestKratos(target, method = 'GET', body = undefined) {
   let url = new URL(target, config.kratosPublicUrl)
   let response = await fetch(url, {
     method,
@@ -34,9 +34,9 @@ async function request(target, method = 'GET', body = undefined) {
     json = await response.json()
   } catch (err) {
     if (!response.ok) {
-      throw new ldap.OperationsError(response.statusText)
+      throw new Error(response.statusText)
     } else {
-      throw new ldap.OperationsError(err.message)
+      throw new Error(err.message)
     }
   }
 
@@ -46,11 +46,22 @@ async function request(target, method = 'GET', body = undefined) {
       json.error?.message ||
       json.ui?.messages?.find((m) => m?.type === 'error')?.text ||
       'Unknown error'
-
-    throw new ldap.OperationsError(errorMessage)
+    throw new Error(errorMessage)
   }
 
   return json
+}
+
+async function logInKratos(identifier, password) {
+  let flow = await requestKratos('self-service/login/api')
+
+  let { action, method = 'POST' } = flow.ui || {}
+
+  if (!action) {
+    throw new Error('Unrecognized response format')
+  }
+
+  return requestKratos(action, method, { method: 'password', identifier, password })
 }
 
 let server = ldap.createServer()
@@ -79,24 +90,10 @@ server.bind(`${config.usersDn},${config.baseDn}`, async (req, res, next) => {
     return next(new ldap.InvalidCredentialsError('Password is required'))
   }
 
-  let flow
-
   try {
-    flow = await request('self-service/login/api')
+    await logInKratos(identifier, password)
   } catch (err) {
-    return next(err)
-  }
-
-  let { action, method = 'POST' } = flow.ui || {}
-
-  if (!action) {
-    return next(new ldap.OperationsError('Unrecognized response format'))
-  }
-
-  try {
-    await request(action, method, { method: 'password', identifier, password })
-  } catch (err) {
-    return next(err)
+    return next(new ldap.OperationsError(err.message))
   }
 
   return next()
