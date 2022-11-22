@@ -96,6 +96,7 @@ server.bind(`${config.usersDn},${config.baseDn}`, async (req, res, next) => {
     return next(new ldap.OperationsError(err.message))
   }
 
+  res.end()
   return next()
 })
 
