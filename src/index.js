@@ -19,18 +19,18 @@ let config = {
   kratosPublicUrl: process.env.KRATOS_PUBLIC_URL,
   kratosAdminUrl: process.env.KRATOS_ADMIN_URL,
   baseDn: process.env.LDAP_BASE_DN,
-  usersDn: process.env.LDAP_USERS_DN || 'users',
+  identitiesDn: process.env.LDAP_IDENTITIES_DN || 'ou=identities',
   idAttribute: process.env.LDAP_ID_ATTRIBUTE,
 }
 
-const USERS_DN = `${config.usersDn},${config.baseDn}`
+const IDENTITIES_DN = `${config.identitiesDn},${config.baseDn}`
 
 /**
  * Converts a Kratos identity into an LDAP entry
  */
 function identityToLdapEntry(identity) {
   return {
-    dn: `id=${identity.id},${USERS_DN}`,
+    dn: `id=${identity.id},${IDENTITIES_DN}`,
     attributes: {
       id: identity.id,
       uid: identity.id,
@@ -108,7 +108,7 @@ async function logInKratos(identifier, password) {
 
 let server = ldap.createServer()
 
-server.bind(USERS_DN, async (req, res, next) => {
+server.bind(IDENTITIES_DN, async (req, res, next) => {
   if (req.dn.rdns.length !== 3) {
     return next(new ldap.InvalidCredentialsError())
   }
@@ -142,7 +142,7 @@ server.bind(USERS_DN, async (req, res, next) => {
   return next()
 })
 
-server.search(USERS_DN, [isAuthenticated], async (req, res, next) => {
+server.search(IDENTITIES_DN, [isAuthenticated], async (req, res, next) => {
   let identities
 
   try {
