@@ -3,6 +3,7 @@ import ldap from 'ldapjs'
 let config = {
   port: Number(process.env.PORT || 1389),
   kratosPublicUrl: process.env.KRATOS_PUBLIC_URL,
+  kratosAdminUrl: process.env.KRATOS_ADMIN_URL,
   baseDn: process.env.LDAP_BASE_DN,
   usersDn: process.env.LDAP_USERS_DN || 'users',
   idAttribute: process.env.LDAP_ID_ATTRIBUTE,
@@ -18,8 +19,41 @@ if (!config.baseDn) {
   process.exit(1)
 }
 
-async function requestKratos(target, method = 'GET', body = undefined) {
-  let url = new URL(target, config.kratosPublicUrl)
+if (!config.kratosAdminUrl) {
+  console.warn("KRATOS_ADMIN_URL is not set. Search requests won't work")
+}
+
+const USERS_DN = `${config.usersDn},${config.baseDn}`
+
+/**
+ * Converts a Kratos identity into an LDAP entry
+ */
+function identityToLdapEntry(identity) {
+  return {
+    dn: `id=${identity.id},${USERS_DN}`,
+    attributes: {
+      id: identity.id,
+      uid: identity.id,
+      schemaId: identity.schema_id,
+      objectClass: identity.schema_id,
+      ...identity.traits,
+    },
+  }
+}
+
+/**
+ * Checks if a request is authenticated (bound)
+ */
+function isAuthenticated(req, res, next) {
+  if (req.connection.ldap.bindDN.equals('cn=anonymous')) {
+    return next(new ldap.InsufficientAccessRightsError())
+  }
+
+  return next()
+}
+
+async function requestKratos(base, target, method = 'GET', body = undefined) {
+  let url = new URL(target, base)
   let response = await fetch(url, {
     method,
     body: JSON.stringify(body),
@@ -52,8 +86,16 @@ async function requestKratos(target, method = 'GET', body = undefined) {
   return json
 }
 
+async function requestPublicApi(target, method = 'GET', body = undefined) {
+  return requestKratos(config.kratosPublicUrl, target, method, body)
+}
+
+async function requestAdminApi(target, method = 'GET', body = undefined) {
+  return requestKratos(config.kratosAdminUrl, target, method, body)
+}
+
 async function logInKratos(identifier, password) {
-  let flow = await requestKratos('self-service/login/api')
+  let flow = await requestPublicApi('self-service/login/api')
 
   let { action, method = 'POST' } = flow.ui || {}
 
@@ -61,12 +103,12 @@ async function logInKratos(identifier, password) {
     throw new Error('Unrecognized response format')
   }
 
-  return requestKratos(action, method, { method: 'password', identifier, password })
+  return requestPublicApi(action, method, { method: 'password', identifier, password })
 }
 
 let server = ldap.createServer()
 
-server.bind(`${config.usersDn},${config.baseDn}`, async (req, res, next) => {
+server.bind(USERS_DN, async (req, res, next) => {
   if (req.dn.rdns.length !== 3) {
     return next(new ldap.InvalidCredentialsError())
   }
@@ -95,6 +137,24 @@ server.bind(`${config.usersDn},${config.baseDn}`, async (req, res, next) => {
   } catch (err) {
     return next(new ldap.OperationsError(err.message))
   }
+
+  res.end()
+  return next()
+})
+
+server.search(USERS_DN, [isAuthenticated], async (req, res, next) => {
+  let identities
+
+  try {
+    identities = await requestAdminApi('identities')
+  } catch (err) {
+    return next(new ldap.OperationsError(err.message))
+  }
+
+  identities
+    .map((identity) => identityToLdapEntry(identity))
+    .filter((entry) => req.filter.matches(entry.attributes))
+    .forEach((entry) => res.send(entry))
 
   res.end()
   return next()
