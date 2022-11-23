@@ -1,5 +1,19 @@
 import ldap from 'ldapjs'
 
+if (!process.env.KRATOS_PUBLIC_URL) {
+  console.error('KRATOS_PUBLIC_URL env variable is required')
+  process.exit(1)
+}
+
+if (!process.env.LDAP_BASE_DN) {
+  console.error('LDAP_BASE_DN env variable is required')
+  process.exit(1)
+}
+
+if (!process.env.KRATOS_ADMIN_URL) {
+  console.warn("KRATOS_ADMIN_URL is not set. Search requests won't work")
+}
+
 let config = {
   port: Number(process.env.PORT || 1389),
   kratosPublicUrl: process.env.KRATOS_PUBLIC_URL,
@@ -7,20 +21,6 @@ let config = {
   baseDn: process.env.LDAP_BASE_DN,
   usersDn: process.env.LDAP_USERS_DN || 'users',
   idAttribute: process.env.LDAP_ID_ATTRIBUTE,
-}
-
-if (!config.kratosPublicUrl) {
-  console.error('KRATOS_PUBLIC_URL env variable is required')
-  process.exit(1)
-}
-
-if (!config.baseDn) {
-  console.error('LDAP_BASE_DN env variable is required')
-  process.exit(1)
-}
-
-if (!config.kratosAdminUrl) {
-  console.warn("KRATOS_ADMIN_URL is not set. Search requests won't work")
 }
 
 const USERS_DN = `${config.usersDn},${config.baseDn}`
@@ -162,5 +162,6 @@ server.search(USERS_DN, [isAuthenticated], async (req, res, next) => {
 
 server.listen(config.port, () => {
   console.log(`LDAP server listening at ${server.url}`)
+  console.log()
   console.log(`Configuration:\n${JSON.stringify(config, null, 4)}`)
 })
