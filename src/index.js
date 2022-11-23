@@ -20,7 +20,7 @@ let config = {
   kratosAdminUrl: process.env.KRATOS_ADMIN_URL,
   baseDn: process.env.LDAP_BASE_DN,
   identitiesDn: process.env.LDAP_IDENTITIES_DN || 'ou=identities',
-  idAttribute: process.env.LDAP_ID_ATTRIBUTE,
+  idAttribute: process.env.LDAP_ID_ATTRIBUTE || 'username',
 }
 
 const IDENTITIES_DN = `${config.identitiesDn},${config.baseDn}`
@@ -30,7 +30,7 @@ const IDENTITIES_DN = `${config.identitiesDn},${config.baseDn}`
  */
 function identityToLdapEntry(identity) {
   return {
-    dn: `id=${identity.id},${IDENTITIES_DN}`,
+    dn: `${config.idAttribute}=${identity.traits[config.idAttribute]},${IDENTITIES_DN}`,
     attributes: {
       id: identity.id,
       uid: identity.id,
@@ -114,14 +114,7 @@ server.bind(IDENTITIES_DN, async (req, res, next) => {
   }
 
   let rdn = req.dn.rdns[0]
-  let identifier = config.idAttribute
-    ? rdn.attrs?.[config.idAttribute]?.value
-    : rdn.attrs?.username?.value ||
-      rdn.attrs?.uid?.value ||
-      rdn.attrs?.cn?.value ||
-      rdn.attrs?.sAMAccountName?.value ||
-      rdn.attrs?.email?.value ||
-      rdn.attrs?.mail?.value
+  let identifier = rdn.attrs?.[config.idAttribute]?.value
   let password = req.credentials
 
   if (!identifier) {
