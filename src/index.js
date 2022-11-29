@@ -13,20 +13,57 @@ let config = {
   port: Number(process.env.PORT || 1389),
   kratosPublicUrl: process.env.KRATOS_PUBLIC_URL,
   kratosAdminUrl: process.env.KRATOS_ADMIN_URL,
-  identitiesDn: process.env.LDAP_IDENTITIES_DN || 'ou=identities',
-  idAttribute: process.env.LDAP_ID_ATTRIBUTE || 'username',
+  ldapIdentitiesDn: process.env.LDAP_IDENTITIES_DN || 'ou=identities',
+}
+
+/**
+ * Returns true if a given trait is defined as an Ory Kratos identifier
+ */
+function isIdentifierTrait(trait) {
+  trait = trait.items || trait
+  return trait?.['ory.sh/kratos']?.credentials?.password?.identifier === true
+}
+
+/**
+ * Returns an array of trait keys defined as Ory Kratos identifiers
+ */
+function getIdentifierTraitsForSchema(schema) {
+  return Object.entries(schema.properties?.traits?.properties || {})
+    .filter(([, trait]) => isIdentifierTrait(trait))
+    .map(([key]) => key)
+}
+
+/**
+ * Returns the value of the first valid identifier in a given identity
+ */
+function getIdentityIdentifier(identity, schema) {
+  let identifierTraits = getIdentifierTraitsForSchema(schema)
+
+  for (let identifierTrait of identifierTraits) {
+    let rawValue = identity.traits[identifierTrait]
+    let value = Array.isArray(rawValue) ? rawValue[0] : rawValue
+
+    if (value) {
+      return value
+    }
+  }
 }
 
 /**
  * Converts a Kratos identity into an LDAP entry
  */
-function identityToLdapEntry(identity) {
+function identityToLdapEntry(identity, schema) {
+  let identifier = getIdentityIdentifier(identity, schema)
+
+  if (!identifier) {
+    return
+  }
+
   return {
-    dn: `identifier=${identity.traits[config.idAttribute]},${config.identitiesDn}`,
+    dn: `identifier=${identifier},${config.ldapIdentitiesDn}`,
     attributes: {
       id: identity.id,
-      uid: identity.id,
-      schemaId: identity.schema_id,
+      schema_id: identity.schema_id,
       objectClass: identity.schema_id,
       ...identity.traits,
     },
@@ -98,9 +135,26 @@ async function logInKratos(identifier, password) {
   return requestPublicApi(action, method, { method: 'password', identifier, password })
 }
 
+async function fetchIdentities() {
+  return requestAdminApi('identities')
+}
+
+async function fetchSchemas() {
+  let schemas = await requestPublicApi('schemas')
+  return schemas.reduce((result, { id, schema }) => {
+    // Not sure why, but sometimes schemas are returned encoded in Base64, and sometimes not.
+    schema =
+      typeof schema === 'string'
+        ? JSON.parse(Buffer.from(schema, 'base64').toString('utf-8'))
+        : schema
+    result[id] = schema
+    return result
+  }, {})
+}
+
 let server = ldap.createServer()
 
-server.bind(config.identitiesDn, async (req, res, next) => {
+server.bind(config.ldapIdentitiesDn, async (req, res, next) => {
   let rdn = req.dn.rdns[0]
   let identifier = rdn.attrs?.identifier?.value
   let password = req.credentials
@@ -127,18 +181,19 @@ server.bind(config.identitiesDn, async (req, res, next) => {
   return next()
 })
 
-server.search(config.identitiesDn, [isAuthenticated], async (req, res, next) => {
-  let identities
+server.search(config.ldapIdentitiesDn, [isAuthenticated], async (req, res, next) => {
+  let schemas, identities
 
   try {
-    identities = await requestAdminApi('identities')
+    ;[schemas, identities] = await Promise.all([fetchSchemas(), fetchIdentities()])
   } catch (err) {
     return next(new ldap.OperationsError(err.message))
   }
 
   identities
-    .map((identity) => identityToLdapEntry(identity))
-    .filter((entry) => req.filter.matches(entry.attributes))
+    .filter((identity) => schemas[identity.schema_id])
+    .map((identity) => identityToLdapEntry(identity, schemas[identity.schema_id]))
+    .filter((entry) => entry && req.filter.matches(entry.attributes))
     .forEach((entry) => res.send(entry))
 
   res.end()
