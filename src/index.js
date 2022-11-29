@@ -5,11 +5,6 @@ if (!process.env.KRATOS_PUBLIC_URL) {
   process.exit(1)
 }
 
-if (!process.env.LDAP_BASE_DN) {
-  console.error('LDAP_BASE_DN env variable is required')
-  process.exit(1)
-}
-
 if (!process.env.KRATOS_ADMIN_URL) {
   console.warn("KRATOS_ADMIN_URL is not set. Search requests won't work")
 }
@@ -18,19 +13,18 @@ let config = {
   port: Number(process.env.PORT || 1389),
   kratosPublicUrl: process.env.KRATOS_PUBLIC_URL,
   kratosAdminUrl: process.env.KRATOS_ADMIN_URL,
-  baseDn: process.env.LDAP_BASE_DN,
   identitiesDn: process.env.LDAP_IDENTITIES_DN || 'ou=identities',
   idAttribute: process.env.LDAP_ID_ATTRIBUTE || 'username',
 }
-
-const IDENTITIES_DN = `${config.identitiesDn},${config.baseDn}`
 
 /**
  * Converts a Kratos identity into an LDAP entry
  */
 function identityToLdapEntry(identity) {
   return {
-    dn: `${config.idAttribute}=${identity.traits[config.idAttribute]},${IDENTITIES_DN}`,
+    dn: `${config.idAttribute}=${identity.traits[config.idAttribute]},${
+      config.identitiesDn
+    }`,
     attributes: {
       id: identity.id,
       uid: identity.id,
@@ -108,7 +102,7 @@ async function logInKratos(identifier, password) {
 
 let server = ldap.createServer()
 
-server.bind(IDENTITIES_DN, async (req, res, next) => {
+server.bind(config.identitiesDn, async (req, res, next) => {
   if (req.dn.rdns.length !== 3) {
     return next(new ldap.InvalidCredentialsError())
   }
@@ -135,7 +129,7 @@ server.bind(IDENTITIES_DN, async (req, res, next) => {
   return next()
 })
 
-server.search(IDENTITIES_DN, [isAuthenticated], async (req, res, next) => {
+server.search(config.identitiesDn, [isAuthenticated], async (req, res, next) => {
   let identities
 
   try {
