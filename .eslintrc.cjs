@@ -9,6 +9,7 @@ module.exports = {
   plugins: ['prettier'],
   env: {
     node: true,
+    es6: true,
   },
   rules: {
     'prettier/prettier': 'error',
