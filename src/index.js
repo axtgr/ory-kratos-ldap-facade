@@ -22,9 +22,7 @@ let config = {
  */
 function identityToLdapEntry(identity) {
   return {
-    dn: `${config.idAttribute}=${identity.traits[config.idAttribute]},${
-      config.identitiesDn
-    }`,
+    dn: `identifier=${identity.traits[config.idAttribute]},${config.identitiesDn}`,
     attributes: {
       id: identity.id,
       uid: identity.id,
@@ -103,16 +101,16 @@ async function logInKratos(identifier, password) {
 let server = ldap.createServer()
 
 server.bind(config.identitiesDn, async (req, res, next) => {
-  if (req.dn.rdns.length !== 3) {
-    return next(new ldap.InvalidCredentialsError())
-  }
-
   let rdn = req.dn.rdns[0]
-  let identifier = rdn.attrs?.[config.idAttribute]?.value
+  let identifier = rdn.attrs?.identifier?.value
   let password = req.credentials
 
   if (!identifier) {
-    return next(new ldap.InvalidCredentialsError('An identifier attribute is required'))
+    return next(
+      new ldap.InvalidCredentialsError(
+        `RDN must include a non-empty "identifier" attribute ("identifier=VALUE"). The provided RDN was "${rdn.toString()}"`
+      )
+    )
   }
 
   if (!password) {
