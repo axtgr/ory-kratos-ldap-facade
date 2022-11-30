@@ -1,5 +1,5 @@
 import ldap from 'ldapjs'
-import { port, identitiesDn } from './config'
+import { port, identitiesDn, protectedSearch } from './config'
 import { logInKratos, fetchIdentities, fetchSchemas } from './kratosClient'
 import { identityToLdapEntry } from './helpers'
 
@@ -71,7 +71,7 @@ async function search(req, res, next) {
 function startLdapServer(cb) {
   let server = ldap.createServer()
   server.bind(identitiesDn, bind)
-  server.search(identitiesDn, [isAuthenticated], search)
+  server.search(identitiesDn, protectedSearch ? [isAuthenticated] : [], search)
   server.listen(port, () => cb(server))
 }
 
