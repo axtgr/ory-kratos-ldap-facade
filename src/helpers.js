@@ -1,4 +1,4 @@
-import { ldapIdentitiesDn } from './config.js'
+import { identitiesDn } from './config.js'
 
 /**
  * Returns true if a given trait is defined as an Ory Kratos identifier
@@ -44,7 +44,7 @@ function identityToLdapEntry(identity, schema) {
   }
 
   return {
-    dn: `identifier=${identifier},${ldapIdentitiesDn}`,
+    dn: `identifier=${identifier},${identitiesDn}`,
     attributes: {
       id: identity.id,
       schema_id: identity.schema_id,
