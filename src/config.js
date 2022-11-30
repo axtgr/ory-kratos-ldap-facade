@@ -10,13 +10,13 @@ if (!process.env.KRATOS_ADMIN_URL) {
 /** Port to start the LDAP server at */
 let port = Number(process.env.PORT || 1389)
 
+/** LDAP DN to use as a base for all identities  */
+let identitiesDn = process.env.IDENTITIES_DN || 'ou=identities'
+
 /** Kratos's public API URL */
 let kratosPublicUrl = process.env.KRATOS_PUBLIC_URL
 
 /** Kratos's admin API URL */
 let kratosAdminUrl = process.env.KRATOS_ADMIN_URL
 
-/** LDAP DN to use as a base for all identities  */
-let ldapIdentitiesDn = process.env.LDAP_IDENTITIES_DN || 'ou=identities'
-
-export { port, kratosPublicUrl, kratosAdminUrl, ldapIdentitiesDn }
+export { port, identitiesDn, kratosPublicUrl, kratosAdminUrl }

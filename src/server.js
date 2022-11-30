@@ -1,5 +1,5 @@
 import ldap from 'ldapjs'
-import * as config from './config'
+import { port, identitiesDn } from './config'
 import { logInKratos, fetchIdentities, fetchSchemas } from './kratosClient'
 import { identityToLdapEntry } from './helpers'
 
@@ -58,13 +58,9 @@ async function search(req, res, next) {
 
   identities
     .filter((identity) => schemas[identity.schema_id])
-    .map((identity) =>
-      identityToLdapEntry(
-        identity,
-        schemas[identity.schema_id],
-        config.ldapIdentitiesDn
-      )
-    )
+    .map((identity) => {
+      return identityToLdapEntry(identity, schemas[identity.schema_id], identitiesDn)
+    })
     .filter((entry) => entry && req.filter.matches(entry.attributes))
     .forEach((entry) => res.send(entry))
 
@@ -74,9 +70,9 @@ async function search(req, res, next) {
 
 function startLdapServer(cb) {
   let server = ldap.createServer()
-  server.bind(config.ldapIdentitiesDn, bind)
-  server.search(config.ldapIdentitiesDn, [isAuthenticated], search)
-  server.listen(config.port, () => cb(server))
+  server.bind(identitiesDn, bind)
+  server.search(identitiesDn, [isAuthenticated], search)
+  server.listen(port, () => cb(server))
 }
 
 export { startLdapServer }
