@@ -68,8 +68,8 @@ async function search(req, res, next) {
   return next()
 }
 
-function startLdapServer(cb) {
-  let server = ldap.createServer()
+function startLdapServer(logger, cb) {
+  let server = ldap.createServer({ log: logger })
   server.bind(identitiesDn, bind)
   server.search(identitiesDn, protectedSearch ? [isAuthenticated] : [], search)
   server.listen(port, () => cb(server))

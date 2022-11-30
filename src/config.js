@@ -11,6 +11,10 @@ if (!process.env.KRATOS_ADMIN_URL) {
   console.warn("KRATOS_ADMIN_URL is not set. Search requests won't work")
 }
 
+/** Log level to use (one of 'fatal', 'error', 'warn', 'info', 'debug', 'trace' or 'silent') */
+let logLevel =
+  process.env.LOG_LEVEL || process.env.NODE_ENV === 'production' ? 'error' : 'debug'
+
 /** Port to start the LDAP server at */
 let port = Number(process.env.PORT || 1389)
 
@@ -26,4 +30,11 @@ let kratosPublicUrl = process.env.KRATOS_PUBLIC_URL
 /** Kratos's admin API URL */
 let kratosAdminUrl = process.env.KRATOS_ADMIN_URL
 
-export { port, identitiesDn, protectedSearch, kratosPublicUrl, kratosAdminUrl }
+export {
+  logLevel,
+  port,
+  identitiesDn,
+  protectedSearch,
+  kratosPublicUrl,
+  kratosAdminUrl,
+}
