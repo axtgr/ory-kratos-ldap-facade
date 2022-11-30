@@ -13,7 +13,7 @@ if (!process.env.KRATOS_ADMIN_URL) {
 
 /** Log level to use (one of 'fatal', 'error', 'warn', 'info', 'debug', 'trace' or 'silent') */
 let logLevel =
-  process.env.LOG_LEVEL || process.env.NODE_ENV === 'production' ? 'error' : 'debug'
+  process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'error' : 'debug')
 
 /** Port to start the LDAP server at */
 let port = Number(process.env.PORT || 1389)
