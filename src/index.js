@@ -1,6 +1,6 @@
 import pino from 'pino'
-import { startLdapServer } from './server'
-import * as config from './config'
+import { startLdapServer } from './server.js'
+import * as config from './config.js'
 
 let logger = pino({ name: 'ory-kratos-ldap-facade', level: config.logLevel })
 

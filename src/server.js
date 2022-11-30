@@ -1,7 +1,7 @@
 import ldap from 'ldapjs'
-import { port, identitiesDn, protectedSearch } from './config'
-import { logInKratos, fetchIdentities, fetchSchemas } from './kratosClient'
-import { identityToLdapEntry } from './helpers'
+import { port, identitiesDn, protectedSearch } from './config.js'
+import { logInKratos, fetchIdentities, fetchSchemas } from './kratosClient.js'
+import { identityToLdapEntry } from './helpers.js'
 
 /**
  * Checks if a request is authenticated (bound)

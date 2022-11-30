@@ -1,4 +1,4 @@
-import { kratosPublicUrl, kratosAdminUrl } from './config'
+import { kratosPublicUrl, kratosAdminUrl } from './config.js'
 
 /**
  * Sends an HTTP request to Kratos

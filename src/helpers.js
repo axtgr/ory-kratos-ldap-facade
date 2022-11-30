@@ -1,4 +1,4 @@
-import { ldapIdentitiesDn } from './config'
+import { ldapIdentitiesDn } from './config.js'
 
 /**
  * Returns true if a given trait is defined as an Ory Kratos identifier
