@@ -5,7 +5,7 @@ module.exports = {
     sourceType: 'module',
     ecmaVersion: 2021,
   },
-  extends: ['eslint:recommended', 'prettier'],
+  extends: ['eslint:recommended', 'plugin:import/recommended', 'prettier'],
   plugins: ['prettier'],
   env: {
     node: true,
@@ -22,5 +22,6 @@ module.exports = {
     'object-shorthand': 'error',
     'no-prototype-builtins': 'off',
     'no-empty': ['error', { allowEmptyCatch: true }],
+    'import/extensions': ['error', 'always'],
   },
 }
