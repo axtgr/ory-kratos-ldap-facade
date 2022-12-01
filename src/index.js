@@ -1,6 +1,6 @@
-import scope from './scope'
+import scope from './scope.js'
 
-let { config, server } = scope()
+let { config, server } = scope()()
 
 server.start(() => {
   console.log(`LDAP server listening at ${server.url}`)

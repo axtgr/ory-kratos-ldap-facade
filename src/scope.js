@@ -1,6 +1,6 @@
 import { scope, singleton } from 'discope'
 import pino from 'pino'
-import composeConfig from './config.js'
+import { composeConfig } from './config.js'
 import KratosClient from './KratosClient.js'
 import LdapServer from './LdapServer.js'
 

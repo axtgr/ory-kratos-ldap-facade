@@ -1,5 +1,5 @@
 function stringToBoolean(value) {
-  return ['true', 'yes', 'on', '1'].includes(value.toLowerCase())
+  return ['true', 'yes', 'on', '1'].includes(value?.toLowerCase())
 }
 
 function composeConfig(envVars) {
@@ -32,8 +32,8 @@ function composeConfig(envVars) {
   let kratosAdminUrl = envVars.KRATOS_ADMIN_URL
 
   return {
-    logLevel,
     port,
+    logLevel,
     identitiesDn,
     protectedSearch,
     kratosPublicUrl,
