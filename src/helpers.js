@@ -1,5 +1,3 @@
-import { identitiesDn } from './config.js'
-
 /**
  * Returns true if a given trait is defined as an Ory Kratos identifier
  */
@@ -36,7 +34,7 @@ function getIdentityIdentifier(identity, schema) {
 /**
  * Converts a Kratos identity into an LDAP entry
  */
-function identityToLdapEntry(identity, schema) {
+function identityToLdapEntry(identity, schema, identitiesDn) {
   let identifier = getIdentityIdentifier(identity, schema)
 
   if (!identifier) {

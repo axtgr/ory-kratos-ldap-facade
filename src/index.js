@@ -1,10 +1,8 @@
-import pino from 'pino'
-import { startLdapServer } from './server.js'
-import * as config from './config.js'
+import scope from './scope'
 
-let logger = pino({ name: 'ory-kratos-ldap-facade', level: config.logLevel })
+let { config, server } = scope()
 
-startLdapServer(logger, (server) => {
+server.start(() => {
   console.log(`LDAP server listening at ${server.url}`)
   console.log()
   console.log(`Configuration:\n${JSON.stringify(config, null, 4)}`)
