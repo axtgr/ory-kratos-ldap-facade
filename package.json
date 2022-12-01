@@ -14,7 +14,7 @@
     "start": "node src/index.js"
   },
   "dependencies": {
-    "discope": "github:axtgr/discope",
+    "discope": "^0.2.7",
     "ldapjs": "^2.3.3",
     "pino": "^8.7.0"
   },
