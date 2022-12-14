@@ -42,7 +42,7 @@ class LdapServer {
       return next(
         new ldap.InvalidCredentialsError(
           `Password ${
-            this.allowSessionTokenAsPassword ? 'or session token' : ''
+            this.allowSessionTokenAsPassword ? 'or session token ' : ''
           }is required`
         )
       )
@@ -56,7 +56,7 @@ class LdapServer {
       error = err
     }
 
-    if (this.allowSessionTokenAsPassword) {
+    if (this.allowSessionTokenAsPassword && error) {
       try {
         await this.kratosClient.whoami(credential)
       } catch (err) {
