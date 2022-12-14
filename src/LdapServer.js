@@ -1,5 +1,5 @@
 import ldap from 'ldapjs'
-import { identityToLdapEntry } from './helpers.js'
+import { identityToLdapEntry, isValidIdentifierValueForIdentity } from './helpers.js'
 
 /**
  * Checks if a request is authenticated (bound)
@@ -20,6 +20,25 @@ class LdapServer {
     this.protectedSearch = options.protectedSearch
     this.allowSessionTokenAsPassword = options.allowSessionTokenAsPassword
     this.port = options.port
+  }
+
+  /**
+   * Attempts to authenticate using a session token
+   */
+  async _authWithSessionToken(identifier, sessionToken) {
+    let { identity } = await this.kratosClient.whoami(sessionToken)
+
+    if (!identity) {
+      new ldap.OperationsError('Unable to retrieve identity from session')
+    }
+
+    let schema = await this.kratosClient.fetchSchema(identity.schema_id)
+
+    if (!isValidIdentifierValueForIdentity(identifier, identity, schema)) {
+      throw new ldap.InvalidCredentialsError(
+        `Identifier ${identifier} doesn't match the provided session token`
+      )
+    }
   }
 
   /**
@@ -58,7 +77,7 @@ class LdapServer {
 
     if (this.allowSessionTokenAsPassword && error) {
       try {
-        await this.kratosClient.whoami(credential)
+        await this._authWithSessionToken(identifier, credential)
         error = undefined
       } catch (err) {
         error = err

@@ -105,6 +105,13 @@ class KratosClient {
   }
 
   /**
+   * Retrieves an identity schema by its id
+   */
+  async fetchSchema(id) {
+    return this.requestPublicApi(`schemas/${id}`)
+  }
+
+  /**
    * Retrieves a session by its token
    */
   async whoami(sessionToken) {
