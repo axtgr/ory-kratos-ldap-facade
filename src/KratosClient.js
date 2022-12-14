@@ -107,7 +107,7 @@ class KratosClient {
    * Retrieves a session by its token
    */
   async whoami(sessionToken) {
-    return this.requestPublicApi('whoami', 'GET', undefined, {
+    return this.requestPublicApi('sessions/whoami', 'GET', undefined, {
       'X-Session-Token': sessionToken,
     })
   }
