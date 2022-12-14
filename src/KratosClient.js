@@ -7,12 +7,13 @@ class KratosClient {
   /**
    * Sends an HTTP request to Kratos
    */
-  async _request(base, target, method = 'GET', body = undefined) {
+  async _request(base, target, method = 'GET', body = undefined, headers = undefined) {
     let url = new URL(target, base)
     let response = await fetch(url, {
       method,
       body: JSON.stringify(body),
       headers: {
+        ...headers,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
@@ -44,15 +45,20 @@ class KratosClient {
   /**
    * Requests Kratos's public API
    */
-  async requestPublicApi(target, method = 'GET', body = undefined) {
-    return this._request(this.publicApiUrl, target, method, body)
+  async requestPublicApi(
+    target,
+    method = 'GET',
+    body = undefined,
+    headers = undefined
+  ) {
+    return this._request(this.publicApiUrl, target, method, body, headers)
   }
 
   /**
    * Requests Kratos's admin API
    */
-  async requestAdminApi(target, method = 'GET', body = undefined) {
-    return this._request(this.adminApiUrl, target, method, body)
+  async requestAdminApi(target, method = 'GET', body = undefined, headers = undefined) {
+    return this._request(this.adminApiUrl, target, method, body, headers)
   }
 
   /**
@@ -95,6 +101,15 @@ class KratosClient {
       result[id] = schema
       return result
     }, {})
+  }
+
+  /**
+   * Retrieves a session by its token
+   */
+  async whoami(sessionToken) {
+    return this.requestPublicApi('whoami', 'GET', undefined, {
+      'X-Session-Token': sessionToken,
+    })
   }
 }
 
