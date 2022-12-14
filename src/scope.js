@@ -15,10 +15,11 @@ export default scope(() => {
     })
   })
   let kratosClient = singleton(() => {
-    let { kratosPublicUrl, kratosAdminUrl } = config()
+    let { kratosPublicUrl, kratosAdminUrl, kratosSessionCookie } = config()
     return new KratosClient({
       publicApiUrl: kratosPublicUrl,
       adminApiUrl: kratosAdminUrl,
+      sessionCookie: kratosSessionCookie,
     })
   })
   let server = singleton(() => {

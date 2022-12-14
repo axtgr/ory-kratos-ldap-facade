@@ -30,6 +30,9 @@ function composeConfig(envVars) {
     envVars.ALLOW_SESSION_TOKEN_AS_PASSWORD
   )
 
+  /** Kratos's session cookie name used to pass a session token */
+  let kratosSessionCookie = envVars.KRATOS_SESSION_COOKIE
+
   /** Kratos's public API URL */
   let kratosPublicUrl = envVars.KRATOS_PUBLIC_URL
 
@@ -42,6 +45,7 @@ function composeConfig(envVars) {
     identitiesDn,
     protectedSearch,
     allowSessionTokenAsPassword,
+    kratosSessionCookie,
     kratosPublicUrl,
     kratosAdminUrl,
   }

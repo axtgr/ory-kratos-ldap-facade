@@ -1,7 +1,8 @@
 class KratosClient {
-  constructor({ publicApiUrl, adminApiUrl }) {
+  constructor({ publicApiUrl, adminApiUrl, sessionCookie = 'ory_kratos_session' }) {
     this.publicApiUrl = publicApiUrl
     this.adminApiUrl = adminApiUrl
+    this.sessionCookie = sessionCookie
   }
 
   /**
@@ -109,6 +110,7 @@ class KratosClient {
   async whoami(sessionToken) {
     return this.requestPublicApi('sessions/whoami', 'GET', undefined, {
       'X-Session-Token': sessionToken,
+      Cookie: `${this.sessionCookie}=${sessionToken}`,
     })
   }
 }
