@@ -59,6 +59,7 @@ class LdapServer {
     if (this.allowSessionTokenAsPassword && error) {
       try {
         await this.kratosClient.whoami(credential)
+        error = undefined
       } catch (err) {
         error = err
       }

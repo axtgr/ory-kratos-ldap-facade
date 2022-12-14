@@ -109,7 +109,6 @@ class KratosClient {
    */
   async whoami(sessionToken) {
     return this.requestPublicApi('sessions/whoami', 'GET', undefined, {
-      'X-Session-Token': sessionToken,
       Cookie: `${this.sessionCookie}=${sessionToken}`,
     })
   }
