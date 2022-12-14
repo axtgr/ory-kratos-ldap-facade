@@ -22,8 +22,6 @@ class LdapServer {
     this.port = options.port
   }
 
-  _bindWithSessionToken() {}
-
   /**
    * Handles LDAP bind requests
    */
