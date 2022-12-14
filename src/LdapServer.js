@@ -18,8 +18,11 @@ class LdapServer {
     this.kratosClient = options.kratosClient
     this.identitiesDn = options.identitiesDn
     this.protectedSearch = options.protectedSearch
+    this.allowSessionTokenAsPassword = options.allowSessionTokenAsPassword
     this.port = options.port
   }
+
+  _bindWithSessionToken() {}
 
   /**
    * Handles LDAP bind requests
@@ -27,9 +30,9 @@ class LdapServer {
   async _bind(req, res, next) {
     let rdn = req.dn.rdns[0]
     let identifier = rdn.attrs?.identifier?.value
-    let password = req.credentials
+    let credential = req.credentials
 
-    if (!identifier) {
+    if (!this.allowSessionTokenAsPassword && !identifier) {
       return next(
         new ldap.InvalidCredentialsError(
           `RDN must include a non-empty "identifier" attribute ("identifier=VALUE"). The provided RDN was "${rdn.toString()}"`
@@ -37,14 +40,34 @@ class LdapServer {
       )
     }
 
-    if (!password) {
-      return next(new ldap.InvalidCredentialsError('Password is required'))
+    if (!credential) {
+      return next(
+        new ldap.InvalidCredentialsError(
+          `Password ${
+            this.allowSessionTokenAsPassword ? 'or session token' : ''
+          }is required`
+        )
+      )
     }
 
+    let error
+
     try {
-      await this.kratosClient.logIn(identifier, password)
+      await this.kratosClient.logIn(identifier, credential)
     } catch (err) {
-      return next(new ldap.OperationsError(err.message))
+      error = err
+    }
+
+    if (this.allowSessionTokenAsPassword) {
+      try {
+        await this.kratosClient.whoami(credential)
+      } catch (err) {
+        error = err
+      }
+    }
+
+    if (error) {
+      return next(new ldap.OperationsError(error.message))
     }
 
     res.end()

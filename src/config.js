@@ -25,6 +25,11 @@ function composeConfig(envVars) {
   /** Whether to require authentication for search requests */
   let protectedSearch = stringToBoolean(envVars.PROTECTED_SEARCH)
 
+  /** Whether to allow passing a session token instead of a password when binding */
+  let allowSessionTokenAsPassword = stringToBoolean(
+    envVars.ALLOW_SESSION_TOKEN_AS_PASSWORD
+  )
+
   /** Kratos's public API URL */
   let kratosPublicUrl = envVars.KRATOS_PUBLIC_URL
 
@@ -36,6 +41,7 @@ function composeConfig(envVars) {
     logLevel,
     identitiesDn,
     protectedSearch,
+    allowSessionTokenAsPassword,
     kratosPublicUrl,
     kratosAdminUrl,
   }
