@@ -22,11 +22,12 @@ export default scope(() => {
     })
   })
   let server = singleton(() => {
-    let { port, identitiesDn, protectedSearch } = config()
+    let { port, identitiesDn, protectedSearch, allowSessionTokenAsPassword } = config()
     return new LdapServer({
       port,
       identitiesDn,
       protectedSearch,
+      allowSessionTokenAsPassword,
       kratosClient: kratosClient(),
       logger: logger(),
     })
